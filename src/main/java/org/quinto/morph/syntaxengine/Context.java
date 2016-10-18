@@ -1,0 +1,44 @@
+package org.quinto.morph.syntaxengine;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.apache.commons.lang3.tuple.Triple;
+import org.quinto.morph.syntaxengine.rules.Rule;
+import org.quinto.morph.syntaxengine.util.Sequence;
+
+public class Context {
+  public Sequence< ? > input;
+  public final Set< Triple< Integer, Integer, Integer > > stack = new HashSet<>();
+  public final Map< Triple< Integer, Integer, Integer >, ParseResult > resultsCache = new HashMap<>();
+
+  public Context( Sequence< ? > input ) {
+    this.input = input;
+  }
+
+  public boolean isOnStack( Scope scope, Rule rule ) {
+    Triple< Integer, Integer, Integer > key = Triple.of( rule.id, scope.from, scope.to );
+    return stack.contains( key );
+  }
+
+  public void putOnStack( Scope scope, Rule rule ) {
+    Triple< Integer, Integer, Integer > key = Triple.of( rule.id, scope.from, scope.to );
+    stack.add( key );
+  }
+
+  public void removeFromStack( Scope scope, Rule rule ) {
+    Triple< Integer, Integer, Integer > key = Triple.of( rule.id, scope.from, scope.to );
+    stack.remove( key );
+  }
+
+  public void putToCache( Scope scope, Rule rule, ParseResult res ) {
+    Triple< Integer, Integer, Integer > key = Triple.of( rule.id, scope.from, scope.to );
+    resultsCache.put( key, res );
+  }
+
+  public ParseResult getFromCache( Scope scope, Rule rule ) {
+    Triple< Integer, Integer, Integer > key = Triple.of( rule.id, scope.from, scope.to );
+    return resultsCache.get( key );
+  }
+}
