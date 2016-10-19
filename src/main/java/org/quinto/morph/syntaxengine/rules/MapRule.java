@@ -1,5 +1,6 @@
 package org.quinto.morph.syntaxengine.rules;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.quinto.morph.syntaxengine.ParseResult;
 import org.quinto.morph.syntaxengine.Parser;
@@ -21,8 +22,21 @@ public class MapRule extends Rule {
     }, rule );
   }
   
-  public < T > MapRule( Parser parser, Rule rule, Function< T, Object > mapping ) {
-    this( parser, rule, ( Object... ops ) -> mapping.apply( ( T )ops[ 0 ] ) );
+  public < A > MapRule( Parser parser, Rule rule, Function< A, Object > mapping ) {
+    this( parser, rule, ( Object... ops ) -> {
+      if ( ops.length == 1 ) {
+        try {
+          return mapping.apply( ( A )ops[ 0 ] );
+        } catch ( ClassCastException e ) {
+          return mapping.apply( ( A )ops );
+        }
+      } else
+        return mapping.apply( ( A )ops );
+    });
+  }
+  
+  public < A, B > MapRule( Parser parser, Rule rule, BiFunction< A, B, Object > mapping ) {
+    this( parser, rule, ( Object... ops ) -> mapping.apply( ( A )ops[ 0 ], ( B )ops[ 1 ] ) );
   }
   
   public MapRule( Parser parser, Function< TreeNode, TreeNode > mapping, Rule rule ) {

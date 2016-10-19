@@ -1,6 +1,5 @@
 package org.quinto.morph.syntaxengine.rules;
 
-import java.util.Arrays;
 import org.quinto.morph.syntaxengine.ParseResult;
 import org.quinto.morph.syntaxengine.Parser;
 import org.quinto.morph.syntaxengine.Scope;
@@ -44,7 +43,6 @@ public class SeqRule extends Rule {
       Variants< Sequence< TreeNode > > variants = Sequence.toVariantsOfSequences( seq );
       success.addAll( TreeNode.toVariantsOfTreeNodes( variants, true ) );
     }
-    System.out.println( fromScope + ", " + fromRule + ", " + Arrays.toString( delimiters ) );
     return success.isEmpty() ? lastFailure : new ParseResult( success );
   }
 }

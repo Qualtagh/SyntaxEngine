@@ -1,5 +1,8 @@
 package org.quinto.morph.syntaxengine;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -369,5 +372,41 @@ public class ParserTest {
       } catch ( ParseException e ) {
       }
     }
+  }
+  
+  @Test
+  public void arithmetic() throws ParseException {
+    Parser parser = new Parser() {
+      {
+        def( Rule.ROOT, ref( "expr" ) );
+        def( "expr", or( map( seq( ref( "expr" ), eq( "*" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] * ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "/" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] / ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "+" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] + ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "-" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] - ( Integer )ops[ 2 ] ),
+                         map( seq( eq( "(" ), ref( "expr" ), eq( ")" ) ), ( Object... ops ) -> ops[ 1 ] ),
+                         map( seq( eq( "-" ), ref( "expr" ) ), ( String op, Integer number ) -> -number ),
+                         map( match( ( String s ) -> s.matches( "\\d+" ) ), ( String number ) -> Integer.parseInt( number ) ) ) );
+      }
+    };
+    assertEquals( new HashSet<>( Arrays.asList( -9, -7, 3, 5 ) ), parser.parse( Splitter.split( "-1 + 2 * 3" ) ).stream().map( node -> node.data ).collect( Collectors.toSet() ) );
+    assertEquals( new HashSet<>( Arrays.asList( 5 ) ), parser.parse( Splitter.split( "(-1) + (2 * 3)" ) ).stream().map( node -> node.data ).collect( Collectors.toSet() ) );
+  }
+  
+  @Test
+  public void arithmeticVararg() throws ParseException {
+    Parser parser = new Parser() {
+      {
+        def( Rule.ROOT, ref( "expr" ) );
+        def( "expr", or( map( seq( ref( "expr" ), eq( "*" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] * ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "/" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] / ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "+" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] + ( Integer )ops[ 2 ] ),
+                         map( seq( ref( "expr" ), eq( "-" ), ref( "expr" ) ), ( Object... ops ) -> ( Integer )ops[ 0 ] - ( Integer )ops[ 2 ] ),
+                         map( seq( eq( "(" ), ref( "expr" ), eq( ")" ) ), ( Object... ops ) -> ops[ 1 ] ),
+                         map( seq( eq( "-" ), ref( "expr" ) ), ( Object... ops ) -> -( Integer )ops[ 1 ] ),
+                         map( match( ( String s ) -> s.matches( "\\d+" ) ), ( Object... ops ) -> Integer.parseInt( ( String )ops[ 0 ] ) ) ) );
+      }
+    };
+    assertEquals( new HashSet<>( Arrays.asList( -9, -7, 3, 5 ) ), parser.parse( Splitter.split( "-1 + 2 * 3" ) ).stream().map( node -> node.data ).collect( Collectors.toSet() ) );
+    assertEquals( new HashSet<>( Arrays.asList( 5 ) ), parser.parse( Splitter.split( "(-1) + (2 * 3)" ) ).stream().map( node -> node.data ).collect( Collectors.toSet() ) );
   }
 }

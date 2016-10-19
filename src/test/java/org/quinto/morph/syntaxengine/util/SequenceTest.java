@@ -18,14 +18,14 @@ public class SequenceTest {
     assertEquals( size, variants.size() );
     for ( Sequence< String > var : variants )
       assertEquals( seq.size(), var.size() );
-    Sequence< String > first = seq.stream().map( v -> v.get( 0 ) ).collect( Collectors.toCollection( Sequence::new ) );
-    assertEquals( first, variants.get( 0 ) );
-    Sequence< String > last = seq.stream().map( v -> v.get( v.size() - 1 ) ).collect( Collectors.toCollection( Sequence::new ) );
-    assertEquals( last, variants.get( variants.size() - 1 ) );
+    Sequence< String > first = seq.stream().map( v -> v.iterator().next() ).collect( Collectors.toCollection( Sequence::new ) );
+    assertEquals( first, variants.iterator().next() );
+    Sequence< String > last = seq.stream().map( v -> v.stream().skip( v.size() - 1 ).findFirst().get() ).collect( Collectors.toCollection( Sequence::new ) );
+    assertEquals( last, variants.stream().skip( variants.size() - 1 ).findFirst().get() );
     seq = new Sequence<>();
     variants = Sequence.toVariantsOfSequences( seq );
     assertEquals( 1, variants.size() );
-    assertEquals( 0, variants.get( 0 ).size() );
+    assertEquals( 0, variants.iterator().next().size() );
   }
   
   @Test

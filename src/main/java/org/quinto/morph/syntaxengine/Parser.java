@@ -2,11 +2,11 @@ package org.quinto.morph.syntaxengine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.quinto.morph.syntaxengine.rules.*;
 import org.quinto.morph.syntaxengine.util.Sequence;
-import org.quinto.morph.syntaxengine.util.VarargFunction;
 import org.quinto.morph.syntaxengine.util.Variants;
 
 public class Parser {
@@ -14,8 +14,11 @@ public class Parser {
   
   public Variants< TreeNode > parse( Sequence< ? > sentence ) throws ParseException {
     ParseResult result = getNamedRule( Rule.ROOT ).apply( new Scope( new Context( sentence ), 0, sentence.size() ) );
-    if ( result.isFailed() )
-      throw result.failure;
+    if ( result.isFailed() ) {
+      ParseException e = new ParseException( result.failure.getMessage() + " at [ " + result.failure.scope.from + ", " + result.failure.scope.to + " ]" );
+      e.addSuppressed( result.failure );
+      throw e;
+    }
     return result.success;
   }
   
@@ -43,12 +46,32 @@ public class Parser {
     return rule;
   }
   
-  public MatchRule match( Predicate< ? extends Object > pattern ) {
+  public MatchRule match( Predicate< ? > pattern ) {
     return new MatchRule( this, pattern );
   }
   
   public MatchRule eq( Object pattern ) {
     return new MatchRule( this, Predicate.isEqual( pattern ) );
+  }
+  
+  public MatchRule hasTag( String tagName ) {
+    return new MatchRule< TreeNode >( this, node -> node.hasTag( tagName ) );
+  }
+  
+  public MatchRule hasTag( String tagName, String value ) {
+    return new MatchRule< TreeNode >( this, node -> node.hasTag( tagName, value ) );
+  }
+  
+  public MatchRule hasTag( String tagName, Predicate< String > valueCondition ) {
+    return new MatchRule< TreeNode >( this, node -> node.hasTag( tagName, valueCondition ) );
+  }
+  
+  public MatchRule hasTag( Predicate< String > tagNameSelector ) {
+    return new MatchRule< TreeNode >( this, node -> node.hasTag( tagNameSelector ) );
+  }
+  
+  public MatchRule hasTag( Predicate< String > tagNameSelector, Predicate< String > valueCondition ) {
+    return new MatchRule< TreeNode >( this, node -> node.hasTag( tagNameSelector, valueCondition ) );
   }
   
   public SeqRule seq( Rule... rulesSeq ) {
@@ -95,7 +118,11 @@ public class Parser {
     return new MapRule( this, mapping, rule );
   }
   
-  public MapRule map( Rule rule, VarargFunction< ?, Object > mapping ) {
+  public MapRule map( Rule rule, Function< ?, Object > mapping ) {
+    return new MapRule( this, rule, mapping );
+  }
+  
+  public MapRule map( Rule rule, BiFunction< ?, ?, Object > mapping ) {
     return new MapRule( this, rule, mapping );
   }
 }

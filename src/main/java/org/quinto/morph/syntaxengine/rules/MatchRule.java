@@ -12,14 +12,26 @@ public class MatchRule< T > extends Rule {
     action = scope -> {
       if ( scope.from != scope.to - 1 )
         return failure( scope, "Only one token allowed" );
-      T token = ( T )scope.context.input.get( scope.from );
-      try {
-        if ( !pattern.test( token ) )
-          return failure( scope, "Token " + token + " doesn't match pattern " + pattern );
-      } catch ( ClassCastException e ) {
-        return failure( scope, "Token " + token + " of wrong type", e );
+      Object token = scope.context.input.get( scope.from );
+      Variants< T > vars;
+      if ( token instanceof Variants )
+        vars = ( Variants< T > )token;
+      else
+        vars = new Variants<>( ( T )token );
+      Variants< TreeNode > success = new Variants<>();
+      ParseResult lastFailure = null;
+      for ( T t : vars ) {
+        try {
+          if ( pattern.test( t ) )
+            success.add( t instanceof TreeNode ? ( TreeNode )t : new TreeNode( t ) );
+          else if ( lastFailure == null )
+            lastFailure = failure( scope, "Token " + t + " doesn't match pattern " + pattern );
+        } catch ( ClassCastException e ) {
+          if ( lastFailure == null )
+            lastFailure = failure( scope, "Token " + t + " of wrong type", e );
+        }
       }
-      return new ParseResult( new Variants<>( new TreeNode( token ) ) );
+      return success.isEmpty() ? lastFailure == null ? failure( scope, "Empty variants set" ) : lastFailure : new ParseResult( success );
     };
   }
 }

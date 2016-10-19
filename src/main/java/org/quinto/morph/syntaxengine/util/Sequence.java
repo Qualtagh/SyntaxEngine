@@ -1,13 +1,17 @@
 package org.quinto.morph.syntaxengine.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-public class Sequence< T > extends ExtList< T > {
+public class Sequence< T > extends ArrayList< T > {
   public Sequence( T... list ) {
-    super( list );
+    super( list.length );
+    for ( T t : list )
+      add( t );
   }
-
+  
   public Sequence() {
   }
 
@@ -18,10 +22,21 @@ public class Sequence< T > extends ExtList< T > {
   public Sequence( Collection< ? extends T > c ) {
     super( c );
   }
-
-  @Override
+  
   public Sequence< T > with( T... elems ) {
-    return ( Sequence< T > )super.with( elems );
+    if ( elems != null && elems.length != 0 ) {
+      if ( elems.length == 1 )
+        add( elems[ 0 ] );
+      else
+        addAll( Arrays.asList( elems ) );
+    }
+    return this;
+  }
+  
+  public void reverse() {
+    final int size = size();
+    for ( int i = 0; i < size / 2; i++ )
+      set( i, set( size - i - 1, get( i ) ) );
   }
 
   public static < T > Variants< Sequence< T > > toVariantsOfSequences( Sequence< Variants< T > > seq ) {
