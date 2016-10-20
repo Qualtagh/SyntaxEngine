@@ -24,7 +24,7 @@ public class TreeNodeTest {
     TreeNode h2 = new TreeNode().withTag( "h2" );
     root.children.addAll( Arrays.asList( h1, h2 ) );
     String expected =
-      "t: [ root ]\n" +
+      "\nt: [ root ]\n" +
       "| t: [ h1 ]\n" +
       "| | t: [ m1 ]\n" +
       "| | | t: [ s1 ]\n" +
@@ -35,7 +35,7 @@ public class TreeNodeTest {
       "| | | t: [ s5 ]\n" +
       "| | | t: [ s6 ]\n" +
       "| | t: [ m3 ]\n" +
-      "| t: [ h2 ]\n";
+      "| t: [ h2 ]";
     assertEquals( expected, root.toString() );
   }
 }

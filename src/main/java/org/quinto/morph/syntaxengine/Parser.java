@@ -15,6 +15,8 @@ public class Parser {
   public Variants< TreeNode > parse( Sequence< ? > sentence ) throws ParseException {
     ParseResult result = getNamedRule( Rule.ROOT ).apply( new Scope( new Context( sentence ), 0, sentence.size() ) );
     if ( result.isFailed() ) {
+      if ( result.failure == null )
+        throw new ParseException( "No variants found" );
       ParseException e = new ParseException( result.failure.getMessage() + " at [ " + result.failure.scope.from + ", " + result.failure.scope.to + " ]" );
       e.addSuppressed( result.failure );
       throw e;
@@ -75,7 +77,7 @@ public class Parser {
   }
   
   public SeqRule seq( Rule... rulesSeq ) {
-    return new SeqRule( this, rulesSeq );
+    return new SeqRule( this, false, rulesSeq );
   }
   
   public UnorderedSeqRule seqUnordered( Rule... rulesSeq ) {

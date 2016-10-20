@@ -11,20 +11,23 @@ import org.quinto.morph.syntaxengine.util.Variants;
 
 public class UnorderedSeqRule extends Rule {
   public UnorderedSeqRule( Parser parser, Rule... rules ) {
-    super( parser );
+    super( parser, false );
     action = scope -> {
       if ( rules == null || rules.length <= 1 )
-        return new SeqRule( parser, rules ).apply( scope );
+        return new SeqRule( parser, true, rules ).apply( scope );
       ParseResult lastFailure = null;
+      ParseResult lastNonStackFailure = null;
       Variants< TreeNode > success = new Variants<>();
       for ( Integer rulesIndexes[] : Permutations.from( IntStream.range( 0, rules.length ).boxed().toArray( Integer[]::new ) ) ) {
         Rule rs[] = new Rule[ rules.length ];
         for ( int i = 0; i < rs.length; i++ )
           rs[ i ] = rules[ rulesIndexes[ i ] ];
-        ParseResult res = new SeqRule( parser, rs ).apply( scope );
-        if ( res.isFailed() )
+        ParseResult res = new SeqRule( parser, true, rs ).apply( scope );
+        if ( res.isFailed() ) {
           lastFailure = res;
-        else {
+          if ( !res.isAlreadyOnStackFailure() )
+            lastNonStackFailure = res;
+        } else {
           int reverseIndex[] = new int[ rulesIndexes.length ];
           for ( int i = 0; i < rulesIndexes.length; i++ )
             reverseIndex[ rulesIndexes[ i ] ] = i;
@@ -37,7 +40,7 @@ public class UnorderedSeqRule extends Rule {
           success.addAll( res.success );
         }
       }
-      return success.isEmpty() ? lastFailure : new ParseResult( success );
+      return success.isEmpty() ? lastNonStackFailure == null ? lastFailure : lastNonStackFailure : new ParseResult( success );
     };
   }
 }

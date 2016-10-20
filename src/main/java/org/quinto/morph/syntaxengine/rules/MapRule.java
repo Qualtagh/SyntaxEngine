@@ -40,7 +40,7 @@ public class MapRule extends Rule {
   }
   
   public MapRule( Parser parser, Function< TreeNode, TreeNode > mapping, Rule rule ) {
-    super( parser );
+    super( parser, false );
     action = scope -> {
       ParseResult res = rule.apply( scope );
       if ( res.isFailed() )

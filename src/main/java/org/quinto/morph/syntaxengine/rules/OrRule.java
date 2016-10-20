@@ -7,7 +7,7 @@ import org.quinto.morph.syntaxengine.util.Variants;
 
 public class OrRule extends Rule {
   public OrRule( Parser parser, Rule... rules ) {
-    super( parser );
+    super( parser, false );
     action = scope -> {
       if ( rules == null || rules.length == 0 ) {
         if ( scope.from == scope.to )
@@ -15,15 +15,18 @@ public class OrRule extends Rule {
         return failure( scope, "Empty sequence, non-empty input" );
       }
       ParseResult lastFailure = null;
+      ParseResult lastNonStackFailure = null;
       Variants< TreeNode > success = new Variants<>();
       for ( Rule rule : rules ) {
         ParseResult res = rule.apply( scope );
-        if ( res.isFailed() )
+        if ( res.isFailed() ) {
           lastFailure = res;
-        else
+          if ( !res.isAlreadyOnStackFailure() )
+            lastNonStackFailure = res;
+        } else
           success.addAll( res.success );
       }
-      return success.isEmpty() ? lastFailure : new ParseResult( success );
+      return success.isEmpty() ? lastNonStackFailure == null ? lastFailure : lastNonStackFailure : new ParseResult( success );
     };
   }
 }

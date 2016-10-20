@@ -15,4 +15,8 @@ public class ParseException extends Exception {
     this.rule = rule;
     this.scope = scope;
   }
+
+  public boolean isAlreadyOnStackFailure() {
+    return "Already on stack".equals( getMessage() );
+  }
 }

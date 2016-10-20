@@ -8,7 +8,7 @@ import org.quinto.morph.syntaxengine.util.Variants;
 
 public class FilterRule extends Rule {
   public FilterRule( Parser parser, Rule rule, Predicate< TreeNode > condition ) {
-    super( parser );
+    super( parser, false );
     action = scope -> {
       ParseResult res = rule.apply( scope );
       if ( res.isFailed() )

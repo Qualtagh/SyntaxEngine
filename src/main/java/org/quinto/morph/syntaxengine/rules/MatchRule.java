@@ -8,7 +8,7 @@ import org.quinto.morph.syntaxengine.util.Variants;
 
 public class MatchRule< T > extends Rule {
   public MatchRule( Parser parser, Predicate< T > pattern ) {
-    super( parser );
+    super( parser, false );
     action = scope -> {
       if ( scope.from != scope.to - 1 )
         return failure( scope, "Only one token allowed" );

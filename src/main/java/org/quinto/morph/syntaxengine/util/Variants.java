@@ -22,6 +22,15 @@ public class Variants< T > extends LinkedHashSet< T > {
     super( c );
   }
   
+  public Variants< T > with( Iterable< T > elems ) {
+    if ( elems instanceof Collection )
+      addAll( ( Collection< T > )elems );
+    else
+      for ( T t : elems )
+        add( t );
+    return this;
+  }
+  
   public Variants< T > with( T... elems ) {
     if ( elems != null && elems.length != 0 ) {
       if ( elems.length == 1 )

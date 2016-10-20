@@ -20,7 +20,7 @@ public class RepRule extends Rule {
   }
   
   public RepRule( Parser parser, int repFrom, int repTo, Rule rule ) {
-    super( parser );
+    super( parser, false );
     final int repsFrom = repFrom < 0 ? 0 : repFrom;
     final int repsTo = repTo > MAX_REPETITIONS ? MAX_REPETITIONS : repTo;
     if ( repsFrom > repsTo )
@@ -50,6 +50,7 @@ public class RepRule extends Rule {
     if ( maxRep <= 0 )
       return failure( scope, "Max number of repetitions reached" );
     ParseResult lastFailure = null;
+    ParseResult lastNonStackFailure = null;
     Variants< TreeNode > success = new Variants<>();
     Boolean vis[] = visited[ pathTo ];
     for ( int pathFrom = 0; pathFrom < pathTo; pathFrom++ ) {
@@ -87,10 +88,13 @@ public class RepRule extends Rule {
             success.addAll( TreeNode.toVariantsOfTreeNodes( vars, maxRep + path.size() > 2 ) );
           }
         }
-        if ( res.isFailed() )
+        if ( res.isFailed() ) {
           lastFailure = res;
+          if ( !res.isAlreadyOnStackFailure() )
+            lastNonStackFailure = res;
+        }
       }
     }
-    return success.isEmpty() ? lastFailure == null ? failure( scope, "No path found" ) : lastFailure : new ParseResult( success );
+    return success.isEmpty() ? lastNonStackFailure == null ? lastFailure == null ? failure( scope, "No path found" ) : lastFailure : lastNonStackFailure : new ParseResult( success );
   }
 }

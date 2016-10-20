@@ -8,8 +8,8 @@ import org.quinto.morph.syntaxengine.util.Sequence;
 import org.quinto.morph.syntaxengine.util.Variants;
 
 public class SeqRule extends Rule {
-  public SeqRule( Parser parser, Rule... rules ) {
-    super( parser );
+  public SeqRule( Parser parser, boolean temp, Rule... rules ) {
+    super( parser, temp );
     action = scope -> {
       if ( rules == null || rules.length == 0 ) {
         if ( scope.from == scope.to )
@@ -23,13 +23,16 @@ public class SeqRule extends Rule {
   private ParseResult match( Scope scope, int fromScope, Rule rules[], int fromRule, int delimiters[] ) {
     Variants< TreeNode > success = new Variants<>();
     ParseResult lastFailure = null;
+    ParseResult lastNonStackFailure = null;
     if ( fromRule + 1 < rules.length ) {
       for ( int from = fromScope; from <= scope.to; from++ ) {
         delimiters[ fromRule ] = from;
         ParseResult res = match( scope, from, rules, fromRule + 1, delimiters );
-        if ( res.isFailed() )
+        if ( res.isFailed() ) {
           lastFailure = res;
-        else
+          if ( !res.isAlreadyOnStackFailure() )
+            lastNonStackFailure = res;
+        } else
           success.addAll( res.success );
       }
     } else {
@@ -43,6 +46,6 @@ public class SeqRule extends Rule {
       Variants< Sequence< TreeNode > > variants = Sequence.toVariantsOfSequences( seq );
       success.addAll( TreeNode.toVariantsOfTreeNodes( variants, true ) );
     }
-    return success.isEmpty() ? lastFailure : new ParseResult( success );
+    return success.isEmpty() ? lastNonStackFailure == null ? lastFailure : lastNonStackFailure : new ParseResult( success );
   }
 }

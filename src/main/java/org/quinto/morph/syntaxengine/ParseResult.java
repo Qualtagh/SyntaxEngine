@@ -17,4 +17,13 @@ public class ParseResult {
   public boolean isFailed() {
     return success == null || success.isEmpty();
   }
+
+  public boolean isAlreadyOnStackFailure() {
+    return isFailed() && failure != null && failure.isAlreadyOnStackFailure();
+  }
+
+  @Override
+  public String toString() {
+    return isFailed() ? "failure: " + failure : "success: " + success;
+  }
 }

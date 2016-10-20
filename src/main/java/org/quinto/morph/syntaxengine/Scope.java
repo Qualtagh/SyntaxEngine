@@ -37,4 +37,9 @@ public class Scope {
     Scope other = ( Scope )obj;
     return from == other.from && to == other.to && Objects.equals( context, other.context );
   }
+
+  @Override
+  public String toString() {
+    return context.input.subList( from, to ) + " [ " + from + ", " + to + " ] " + context.input;
+  }
 }

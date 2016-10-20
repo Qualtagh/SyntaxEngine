@@ -7,7 +7,7 @@ public class RefRule extends Rule {
   public Rule delegate;
   
   public RefRule( Parser parser, String name ) {
-    super( parser );
+    super( parser, false );
     this.name = name;
     action = scope -> delegate.apply( scope );
   }
